@@ -1,0 +1,6 @@
+# Your private eval work (judgments, exclusions, run history) and regenerable caches
+data/
+.cache/
+.pylib/
+models/
+__pycache__/

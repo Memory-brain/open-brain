@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{SKILL}} — Course</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,700;9..144,900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --primary:#141310; --secondary:#8A8175;
+  --tertiary:#B83228; --tertiary-soft:#D35A4B; --tertiary-bg:#F4E6DD;
+  --tertiary-glow:rgba(184,50,40,.14);
+  --neutral:#F4EFE6; --paper:#FBF7ED; --evaluation:#E9DFCB;
+  --hairline:#C9BEA9; --hairline-strong:#B8AD9C;
+  --approve:#5C6F48; --approve-bg:#E8EFDF; --skip:#9B2335; --skip-bg:#F4E1E4;
+  --locked:#B8AD9C; --completed-bg:#E7EDDD; --gold:#8A6D2C;
+  --font-display:"Fraunces",Georgia,serif;
+  --font-body:"Fraunces",Georgia,serif;
+  --font-sans:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  --font-mono:"JetBrains Mono",Consolas,monospace;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth;font-size:16px}
+body{font-family:var(--font-body);font-size:1.0625rem;line-height:1.75;color:var(--primary);
+  background:radial-gradient(circle at 100% 0%,rgba(184,50,40,.10),transparent 28%),
+             linear-gradient(180deg,var(--neutral),var(--evaluation));
+  -webkit-font-smoothing:antialiased;position:relative;overflow-x:hidden}
+.progress-bar-container{position:fixed;top:0;left:0;right:0;height:4px;background:var(--hairline);z-index:1000}
+.progress-bar-fill{height:100%;width:0;background:linear-gradient(90deg,var(--gold),var(--tertiary));transition:width .5s cubic-bezier(.4,0,.2,1)}
+.course-layout{display:grid;grid-template-columns:320px 1fr;min-height:100vh;position:relative;z-index:1}
+.sidebar{position:sticky;top:4px;height:calc(100vh - 4px);overflow-y:auto;
+  background:linear-gradient(180deg,rgba(20,19,16,.96),rgba(20,19,16,.88)),var(--primary);
+  border-right:1px solid rgba(244,239,230,.14);padding:40px 24px;z-index:100}
+.sidebar h1{font-family:var(--font-display);color:var(--paper);font-size:1.4rem;font-weight:700;margin-bottom:6px}
+.sidebar .domain-tag{font-family:var(--font-sans);font-size:.72rem;text-transform:uppercase;letter-spacing:.1em;color:var(--tertiary-soft)}
+.mode-banner{margin:18px 0;padding:10px 12px;border-radius:8px;background:var(--tertiary-glow);
+  border:1px solid var(--tertiary-soft);color:var(--paper);font-family:var(--font-sans);font-size:.78rem}
+.coverage{font-family:var(--font-sans);font-size:.72rem;color:var(--secondary);margin-bottom:20px}
+.phase-tabs{display:flex;gap:4px;margin-bottom:20px}
+.phase-tab{flex:1;padding:10px 8px;border-radius:8px;border:1px solid rgba(244,239,230,.14);
+  background:transparent;color:var(--secondary);font-family:var(--font-sans);font-size:.72rem;
+  text-align:center;cursor:pointer;transition:.2s;text-transform:uppercase;letter-spacing:.06em}
+.phase-tab.active{background:var(--tertiary-glow);border-color:var(--tertiary-soft);color:var(--paper)}
+.phase-tab.locked{opacity:.4;cursor:not-allowed;pointer-events:none}
+.phase-tab.completed{background:rgba(92,111,72,.2);border-color:rgba(92,111,72,.4);color:var(--paper)}
+.phase-tab .phase-score{display:block;font-size:.65rem;margin-top:3px;color:var(--tertiary-soft)}
+.nav-card{display:flex;gap:10px;align-items:baseline;padding:10px 12px;margin:4px 0;border-radius:8px;
+  border:1px solid rgba(244,239,230,.10);text-decoration:none;transition:.2s}
+.nav-card:hover{border-color:var(--tertiary-soft);background:rgba(184,50,40,.08)}
+.nav-card.locked{opacity:.35;pointer-events:none}
+.nav-num{font-family:var(--font-display);font-style:italic;font-size:1.1rem;color:var(--tertiary-soft)}
+.nav-title{font-family:var(--font-sans);font-size:.84rem;color:var(--paper)}
+.main{max-width:760px;padding:100px 56px 120px}
+.module{margin-bottom:80px;scroll-margin-top:90px}
+.module-header .numeral{font-family:var(--font-display);font-style:italic;font-size:5rem;color:var(--tertiary);line-height:1}
+.module-header h2{font-family:var(--font-display);font-size:2.4rem;font-weight:700;margin:.2em 0}
+.objective{font-style:italic;color:var(--secondary);margin-bottom:1.4em}
+.pretest{background:var(--tertiary-bg);border-radius:10px;padding:16px 18px;font-family:var(--font-display);
+  font-style:italic;font-size:1.05rem;margin:1.4em 0}
+.pretest textarea{width:100%;margin-top:10px;border:1px solid var(--hairline);border-radius:8px;
+  background:var(--paper);padding:10px 12px;font:inherit;resize:vertical;color:var(--primary);
+  font-style:normal;font-size:.95rem}
+.readiness{margin:1.4em 0 .8em;padding:14px 16px;border:1px solid var(--hairline);border-radius:10px;background:var(--paper)}
+.readiness h3{font-family:var(--font-display);font-size:1.18rem;margin-bottom:.25em}
+.readiness p{font-size:.92rem;color:var(--secondary);line-height:1.55}
+.before{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:1em 0 1.4em}
+.before h4{font-family:var(--font-sans);font-size:.74rem;text-transform:uppercase;letter-spacing:.08em;color:var(--secondary);margin-bottom:.4em}
+.before ul{padding-left:1.1em}
+.concept{margin:1.4em 0}.concept p{margin:.8em 0}
+.pull-quote{display:flex;gap:16px;align-items:flex-start;margin:1.8em 0;padding:18px 20px;
+  background:var(--paper);border-left:3px solid var(--tertiary);border-radius:0 10px 10px 0}
+.pull-quote .avatar{flex:0 0 56px;height:56px;border-radius:50%;background:var(--tertiary);color:var(--paper);
+  display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:1.3rem;text-transform:uppercase}
+.pull-quote p{font-family:var(--font-display);font-style:italic;font-size:1.25rem;line-height:1.5}
+.pull-quote cite{display:block;margin-top:.5em;font-style:normal;font-size:.82rem;color:var(--secondary)}
+.application{margin:1.4em 0}.application h4,.comprehension strong{font-family:var(--font-sans)}
+.application ul{padding-left:1.1em}
+.comprehension{background:var(--completed-bg);border-radius:10px;padding:16px 18px;margin:1.4em 0}
+.self-explain{border-left:3px solid var(--tertiary-soft);background:var(--tertiary-bg);padding:14px 18px;
+  font-family:var(--font-display);font-style:italic;border-radius:0 8px 8px 0;margin:1.4em 0}
+.anti-pattern{background:var(--skip-bg);border-left:3px solid var(--skip);padding:14px 18px;border-radius:0 8px 8px 0;margin:1em 0}
+.ap-label{font-family:var(--font-sans);font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:var(--skip)}
+.ap-action{font-weight:700;color:var(--primary);margin:.3em 0}
+.ap-conseq{font-style:italic;color:var(--secondary)}
+.spine-step{opacity:0;transform:translateY(18px);max-height:0;overflow:hidden;transition:opacity .5s ease,transform .5s ease}
+.spine-step.revealed{opacity:1;transform:none;max-height:none;overflow:visible;margin-bottom:1.2em}
+.continue{font-family:var(--font-sans);font-size:.8rem;margin-top:14px;padding:9px 18px;border:1px solid var(--tertiary);
+  background:transparent;color:var(--tertiary);border-radius:20px;cursor:pointer;transition:.2s}
+.continue:hover{background:var(--tertiary);color:var(--paper)}
+.continue.used{display:none}
+.cases,.practice,.primer,.scenarios{margin:80px 0;scroll-margin-top:90px}
+.cases h2,.practice h2,.primer h2,.scenarios h2{font-family:var(--font-display);font-size:2rem;font-weight:700}
+.muted{color:var(--secondary);font-style:italic;font-size:.92rem;margin:.4em 0 1.2em}
+.concept-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+.concept-card{background:var(--paper);border:1px solid var(--hairline);border-radius:10px;padding:16px 18px}
+.concept-card h3{font-family:var(--font-display);font-size:1.18rem;margin-bottom:.35em}
+.concept-card p{font-size:.94rem;color:var(--primary);margin-bottom:.7em}
+.concept-card dl{display:grid;gap:.45em;font-size:.86rem}
+.concept-card dt{font-family:var(--font-sans);font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--tertiary)}
+.concept-card dd{color:var(--secondary)}
+.primer-quiz{margin-top:12px;padding-top:12px;border-top:1px solid var(--hairline)}
+.primer-quiz-q{font-family:var(--font-sans);font-size:.86rem;color:var(--primary);margin-bottom:8px;font-weight:500}
+.primer-quiz-opt{display:block;width:100%;text-align:left;margin:5px 0;padding:8px 12px;border:1px solid var(--hairline);
+  background:var(--paper);border-radius:8px;cursor:pointer;font-family:var(--font-sans);font-size:.86rem;transition:.15s}
+.primer-quiz-opt:hover{border-color:var(--tertiary-soft)}
+.primer-quiz-opt.correct{border-color:var(--approve);background:var(--approve-bg);pointer-events:none}
+.primer-quiz-opt.wrong{border-color:var(--skip);background:var(--skip-bg);pointer-events:none}
+.primer-quiz-opt.dimmed{opacity:.5;pointer-events:none}
+.primer-quiz-result{margin-top:6px;font-family:var(--font-sans);font-size:.78rem;min-height:1.2em}
+.case-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+.case-card{background:var(--paper);border:1px solid var(--hairline);border-radius:10px;padding:14px 16px}
+.case-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:.4em}
+.case-plat{font-family:var(--font-sans);font-size:.66rem;text-transform:uppercase;color:var(--tertiary)}
+.case-hook{font-size:.9rem;color:var(--secondary)}
+.case-card a{font-family:var(--font-sans);font-size:.74rem;color:var(--tertiary)}
+.wager{background:var(--evaluation);border-radius:10px;padding:16px 18px;margin-bottom:18px;font-family:var(--font-sans);font-size:.9rem}
+.wager-btns{display:flex;gap:8px;margin-top:10px}
+.wager-btns button{padding:7px 16px;border:1px solid var(--hairline-strong);background:var(--paper);border-radius:18px;cursor:pointer;font-family:var(--font-sans)}
+.wager-btns button.sel{background:var(--tertiary);color:var(--paper);border-color:var(--tertiary)}
+.effort-check{margin-top:14px;padding:10px 14px;border:1px dashed var(--hairline-strong);border-radius:10px}
+.effort-question{font-size:.85rem;margin:0 0 6px 0}
+.effort-opts{display:flex;gap:8px;flex-wrap:wrap}
+.effort-opt{padding:6px 14px;border:1px solid var(--hairline-strong);background:var(--paper);border-radius:18px;cursor:pointer;font-family:var(--font-sans);font-size:.78rem}
+.effort-opt.sel{background:var(--tertiary);color:var(--paper);border-color:var(--tertiary)}
+.effort-note{font-size:.72rem;margin:6px 0 0 0}
+.wager-note{margin-top:10px;font-style:italic;color:var(--tertiary)}
+.recall-list{list-style:none;padding:0;display:grid;gap:12px}
+.recall-item{background:var(--paper);border:1px solid var(--hairline);border-radius:10px;padding:14px 16px}
+.recall-item[data-state="answered"]{border-color:var(--approve);background:var(--approve-bg)}
+.recall-item[data-state="i_dont_know"],.recall-item[data-state="revealed"]{border-color:var(--skip);background:var(--skip-bg)}
+.recall-item[data-state="quiz_passed"]{border-color:var(--gold);background:var(--tertiary-bg)}
+.recall-meta{font-family:var(--font-sans);font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--secondary);margin-bottom:.45em}
+.recall-front{font-family:var(--font-display);font-size:1.05rem}
+.answer-label{display:block;font-family:var(--font-sans);font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--secondary);margin-top:12px}
+.practice-answer,.scenario-answer{width:100%;margin-top:6px;border:1px solid var(--hairline);border-radius:8px;background:var(--paper);padding:10px 12px;font:inherit;resize:vertical;color:var(--primary)}
+.practice-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.practice-actions button,.scenario-actions button{font-family:var(--font-sans);font-size:.76rem;padding:7px 14px;
+  border:1px solid var(--hairline-strong);background:var(--paper);color:var(--primary);border-radius:18px;cursor:pointer}
+.practice-actions button:hover,.scenario-actions button:hover{border-color:var(--tertiary);color:var(--tertiary)}
+.reveal-back{border-color:var(--skip)!important;color:var(--skip)!important}
+.recall-back{display:none;margin-top:10px;padding:10px 12px;background:var(--completed-bg);border-radius:8px;font-size:.92rem}
+.recall-back.show{display:block}
+.quiz-panel{margin-top:10px;padding:12px;background:var(--evaluation);border-radius:8px}
+.quiz-panel p{font-family:var(--font-sans);font-size:.78rem;color:var(--secondary);margin-bottom:8px}
+.quiz-panel button{display:block;width:100%;text-align:left;margin:6px 0;padding:8px 10px;border:1px solid var(--hairline);background:var(--paper);border-radius:8px;cursor:pointer}
+.quiz-panel button.correct{border-color:var(--approve);background:var(--approve-bg)}
+.quiz-panel button.wrong{border-color:var(--skip);background:var(--skip-bg)}
+.item-status{margin-top:10px;font-family:var(--font-sans);font-size:.72rem;color:var(--secondary)}
+.phase-gate{margin-top:28px;padding:18px 20px;background:var(--evaluation);border-radius:10px;
+  border:1px solid var(--hairline);text-align:center}
+.gate-score{font-family:var(--font-sans);font-size:.9rem;color:var(--primary);margin-bottom:10px}
+.gate-btn{font-family:var(--font-sans);font-size:.86rem;padding:10px 24px;border:2px solid var(--tertiary);
+  background:transparent;color:var(--tertiary);border-radius:24px;cursor:pointer;transition:.2s;font-weight:500}
+.gate-btn:hover:not(:disabled){background:var(--tertiary);color:var(--paper)}
+.gate-btn:disabled{opacity:.4;cursor:not-allowed;border-color:var(--locked);color:var(--locked)}
+.scenario-card{background:var(--paper);border:1px solid var(--hairline);border-radius:10px;padding:18px 20px;margin-bottom:14px}
+.scenario-card h3{font-family:var(--font-display);font-size:1.2rem;margin-bottom:.6em}
+.scenario-context,.scenario-constraint,.scenario-deliverable{font-size:.94rem;margin:.5em 0;line-height:1.6}
+.scenario-criteria{margin:.8em 0;font-size:.88rem}
+.scenario-criteria ul{padding-left:1.2em;margin-top:.3em}
+.scenario-criteria li{margin:.3em 0;color:var(--secondary)}
+.scenario-actions{display:flex;gap:8px;margin-top:10px}
+.scenario-status{margin-top:10px;font-family:var(--font-sans);font-size:.72rem;color:var(--secondary)}
+.scenario-card[data-state="answered"]{border-color:var(--approve);background:var(--approve-bg)}
+.sync-section{margin-top:32px;padding:20px;background:var(--paper);border:2px solid var(--tertiary);
+  border-radius:12px;text-align:center}
+.sync-btn{font-family:var(--font-sans);font-size:.92rem;padding:12px 28px;border:2px solid var(--tertiary);
+  background:var(--tertiary);color:var(--paper);border-radius:24px;cursor:pointer;font-weight:500;transition:.2s}
+.sync-btn:hover{background:var(--primary)}
+.sync-btn:disabled{opacity:.5;cursor:not-allowed}
+.sync-btn.secondary{background:transparent;color:var(--tertiary)}
+.sync-btn.secondary:hover{background:var(--tertiary-glow)}
+.sync-actions{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+.sync-optional{margin-top:16px;font-family:var(--font-sans);font-size:.78rem;color:var(--secondary)}
+.practice-export{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 8px}
+#sync-status{margin-top:12px;font-family:var(--font-sans);font-size:.86rem;color:var(--secondary);min-height:1.4em}
+.sync-success{color:var(--approve)!important;font-weight:500}
+.sync-error{color:var(--skip)!important}
+.phase-hidden{display:none}
+@media(max-width:880px){.course-layout{grid-template-columns:1fr}.sidebar{position:relative;height:auto}.main{padding:60px 24px}.before{grid-template-columns:1fr}.case-grid,.concept-grid{grid-template-columns:1fr}}
+
+/* === OPTIONAL AI CHECK (GitHub Models) === */
+.gh-token-section{margin-top:22px;padding:12px;background:rgba(244,239,230,.05);border:1px solid rgba(244,239,230,.12);border-radius:8px}
+.gh-token-section h4{font-family:var(--font-sans);font-size:.66rem;text-transform:uppercase;letter-spacing:.09em;color:var(--secondary);margin-bottom:7px}
+.gh-token-section p{font-family:var(--font-sans);font-size:.68rem;color:var(--secondary);margin-bottom:8px;line-height:1.4}
+.gh-token-section input{width:100%;padding:6px 9px;background:rgba(244,239,230,.07);border:1px solid rgba(244,239,230,.18);border-radius:6px;color:var(--paper);font-family:var(--font-mono);font-size:.7rem;outline:none}
+.gh-token-section input:focus{border-color:var(--tertiary-soft)}
+.gh-token-status{font-family:var(--font-sans);font-size:.65rem;color:var(--approve);margin-top:5px;min-height:1em}
+.module-answer{width:100%;margin-top:10px;border:1px solid var(--hairline);border-radius:8px;background:var(--paper);padding:10px 12px;font:inherit;resize:vertical;color:var(--primary);font-size:.92rem;line-height:1.55}
+.verify-btn,.verify-scenario-btn{display:inline-flex;align-items:center;gap:5px;font-family:var(--font-sans);font-size:.73rem;padding:6px 14px;border:1px solid var(--tertiary-soft);background:transparent;color:var(--tertiary-soft);border-radius:16px;cursor:pointer;margin-top:9px;transition:.2s}
+.verify-btn:hover,.verify-scenario-btn:hover{background:var(--tertiary-glow);border-color:var(--tertiary);color:var(--paper)}
+.verify-btn:disabled,.verify-scenario-btn:disabled{opacity:.45;cursor:not-allowed}
+.gh-feedback-output{display:none;margin-top:10px}
+.gh-feedback-panel{background:rgba(92,111,72,.11);border:1px solid rgba(92,111,72,.28);border-radius:8px;padding:12px 14px}
+.gh-feedback-label{font-family:var(--font-sans);font-size:.62rem;text-transform:uppercase;letter-spacing:.1em;color:var(--approve);display:block;margin-bottom:5px}
+.gh-feedback-panel p{font-size:.9rem;line-height:1.6;color:var(--primary);margin:0;white-space:pre-wrap}
+.gh-feedback-loading{font-family:var(--font-sans);font-size:.82rem;color:var(--secondary);font-style:italic;padding:8px 0;animation:ghpulse 1.4s ease-in-out infinite}
+.gh-feedback-error{font-family:var(--font-sans);font-size:.8rem;color:var(--skip);padding:8px 10px;background:var(--skip-bg);border-radius:6px}
+@keyframes ghpulse{0%,100%{opacity:1}50%{opacity:.4}}
+</style>
+</head>
+<body>
+<div class="progress-bar-container"><div class="progress-bar-fill" id="pbar"></div></div>
+<div class="course-layout">
+  <aside class="sidebar">
+    <span class="domain-tag">{{DOMAIN}}</span>
+    <h1>{{SKILL}}</h1>
+    <div class="mode-banner">Mode: {{MODE}}</div>
+    <div class="coverage">Generated {{GENERATED}}</div>
+    <div class="phase-tabs">
+      <button class="phase-tab active" data-phase="vocabulario">Vocabulary<span class="phase-score" id="tab-vocab-score"></span></button>
+      <button class="phase-tab locked" data-phase="produccion">Production<span class="phase-score" id="tab-prod-score"></span></button>
+      <button class="phase-tab locked" data-phase="transferencia">Transfer<span class="phase-score" id="tab-trans-score"></span></button>
+    </div>
+    <nav>{{SIDEBAR}}</nav>
+    <div class="gh-token-section">
+      <h4>AI check (optional) ↗</h4>
+      <p>Uses GitHub Models with your own personal access token. Create one in your GitHub account settings (<a href="https://github.com/settings/tokens" target="_blank" rel="noopener" style="color:var(--tertiary-soft)">Settings → Developer settings → Personal access tokens</a>); it needs model access. The token is stored only in this browser's localStorage and is sent only to the endpoint set in <code>AI_CHECK_ENDPOINT</code>. Leave it empty to keep the feature off.</p>
+      <input type="password" id="gh-token-input" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" autocomplete="off" spellcheck="false">
+      <div class="gh-token-status" id="gh-token-status"></div>
+    </div>
+  </aside>
+  <main class="main">{{PRIMER}}{{MODULES}}{{PRACTICE}}{{SCENARIOS}}{{CASES}}</main>
+</div>
+<script>
+// Optional sync endpoint (only if you run your own): receives
+// POST /api/practice-sync and writes Skills/<Domain>/<Skill>/practice-export.md.
+// Nothing ships for it — the default path is the Download button.
+var COURSE_SERVER='http://127.0.0.1:8005';
+// Read from the rendered sidebar so quotes in names cannot break this script.
+var COURSE_DOMAIN=(document.querySelector('.sidebar .domain-tag')||{}).textContent||'';
+var COURSE_SKILL=(document.querySelector('.sidebar h1')||{}).textContent||'';
+var practiceKey='course-practice:'+document.title;
+var practiceState=JSON.parse(localStorage.getItem(practiceKey)||'{}');
+var scenarioState=JSON.parse(localStorage.getItem(practiceKey+':scenarios')||'{}');
+var vocabState=JSON.parse(localStorage.getItem(practiceKey+':vocab')||'{}');
+function savePractice(){localStorage.setItem(practiceKey,JSON.stringify(practiceState));}
+function saveScenarios(){localStorage.setItem(practiceKey+':scenarios',JSON.stringify(scenarioState));}
+function saveVocab(){localStorage.setItem(practiceKey+':vocab',JSON.stringify(vocabState));}
+
+var pbar=document.getElementById('pbar');
+addEventListener('scroll',function(){var h=document.documentElement;
+  pbar.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';});
+
+// === PHASE MANAGEMENT ===
+var currentPhase='vocabulario';
+var phases={vocabulario:false,produccion:false,transferencia:false};
+function showPhase(phase){
+  if(phases[phase]===undefined)return;
+  currentPhase=phase;
+  document.querySelectorAll('.phase-tab').forEach(function(t){
+    t.classList.toggle('active',t.dataset.phase===phase);
+  });
+  document.querySelectorAll('[data-phase]').forEach(function(el){
+    if(el.classList.contains('phase-tab'))return;
+    if(el.dataset.phase===phase){el.classList.remove('phase-hidden');}
+    else{el.classList.add('phase-hidden');}
+  });
+  document.querySelectorAll('.nav-card').forEach(function(c){
+    var p=c.dataset.navPhase||'';
+    c.classList.toggle('locked',p!==phase&&p!=='always');
+  });
+  document.getElementById('cases')?.classList.remove('phase-hidden');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function unlockPhase(phase){
+  phases[phase]=true;
+  var tab=document.querySelector('.phase-tab[data-phase="'+phase+'"]');
+  if(tab){tab.classList.remove('locked');tab.classList.add('completed');}
+}
+function activatePhase(phase){
+  var tab=document.querySelector('.phase-tab[data-phase="'+phase+'"]');
+  if(tab){tab.classList.remove('locked');}
+}
+document.querySelectorAll('.phase-tab').forEach(function(t){
+  t.addEventListener('click',function(){
+    if(!t.classList.contains('locked'))showPhase(t.dataset.phase);
+  });
+});
+
+// === VOCAB QUIZ (Phase 1) ===
+var vocabCorrect=0,vocabTotal=0,vocabAnswered=0;
+(function initVocab(){
+  var quizzes=document.querySelectorAll('.primer-quiz');
+  vocabTotal=quizzes.length;
+  document.getElementById('vocab-total')&&(document.getElementById('vocab-total').textContent=vocabTotal);
+  quizzes.forEach(function(quiz){
+    var correct=parseInt(quiz.dataset.correct)||0;
+    var cidx=quiz.dataset.conceptIdx;
+    if(vocabState[cidx]){
+      applyVocabAnswer(quiz,vocabState[cidx].selected,correct,true);
+      return;
+    }
+    quiz.querySelectorAll('.primer-quiz-opt').forEach(function(btn){
+      btn.addEventListener('click',function(){
+        var selected=parseInt(btn.dataset.idx);
+        vocabState[cidx]={selected:selected,correct:selected===correct};
+        saveVocab();
+        applyVocabAnswer(quiz,selected,correct,false);
+      });
+    });
+  });
+  updateVocabGate();
+})();
+function applyVocabAnswer(quiz,selected,correct,isRestore){
+  var btns=quiz.querySelectorAll('.primer-quiz-opt');
+  btns.forEach(function(b){
+    var idx=parseInt(b.dataset.idx);
+    if(idx===correct)b.classList.add('correct');
+    else if(idx===selected&&selected!==correct)b.classList.add('wrong');
+    else b.classList.add('dimmed');
+  });
+  var result=quiz.querySelector('.primer-quiz-result');
+  if(selected===correct){
+    result.textContent='Correct';result.style.color='var(--approve)';
+  }else{
+    result.textContent='The correct answer was: '+btns[correct]?.textContent;
+    result.style.color='var(--skip)';
+  }
+  if(!isRestore)updateVocabGate();
+}
+function updateVocabGate(){
+  vocabCorrect=0;vocabAnswered=0;
+  Object.values(vocabState).forEach(function(v){vocabAnswered++;if(v.correct)vocabCorrect++;});
+  var scoreEl=document.getElementById('vocab-score');
+  var tabScore=document.getElementById('tab-vocab-score');
+  if(scoreEl)scoreEl.textContent=vocabCorrect;
+  if(tabScore&&vocabTotal)tabScore.textContent=vocabCorrect+'/'+vocabTotal;
+  var pct=vocabTotal>0?vocabCorrect/vocabTotal:0;
+  var unlockBtn=document.getElementById('unlock-production');
+  if(unlockBtn){
+    if(vocabAnswered>=vocabTotal&&pct>=0.7){
+      unlockBtn.disabled=false;
+      unlockBtn.textContent='Unlock Production ('+Math.round(pct*100)+'%) →';
+    }else if(vocabAnswered>=vocabTotal){
+      unlockBtn.disabled=true;
+      unlockBtn.textContent='You need ≥70% (you have '+Math.round(pct*100)+'%). Review the concepts.';
+    }else{
+      unlockBtn.disabled=true;
+      unlockBtn.textContent='Answer all the quizzes ('+vocabAnswered+'/'+vocabTotal+')';
+    }
+  }
+}
+document.getElementById('unlock-production')?.addEventListener('click',function(){
+  unlockPhase('vocabulario');
+  activatePhase('produccion');
+  showPhase('produccion');
+});
+
+// === PROGRESSIVE REVEAL (Phase 2 modules) ===
+document.querySelectorAll('.module').forEach(function(mod){
+  var steps=mod.querySelectorAll('.spine-step');
+  if(steps.length)steps[0].classList.add('revealed');
+});
+document.querySelectorAll('.continue').forEach(function(btn){
+  btn.addEventListener('click',function(){
+    var step=btn.closest('.spine-step');
+    var next=step.nextElementSibling;
+    if(next&&next.classList.contains('spine-step')){
+      next.classList.add('revealed');
+      next.scrollIntoView({behavior:'smooth',block:'center'});
+    }
+    btn.classList.add('used');
+  });
+});
+
+// === CALIBRATION WAGER ===
+document.querySelectorAll('.wager-btns button').forEach(function(b){
+  b.addEventListener('click',function(){
+    b.parentElement.querySelectorAll('button').forEach(function(x){x.classList.remove('sel');});
+    b.classList.add('sel');
+    var note=b.closest('.wager').querySelector('.wager-note');
+    var map={alta:'High bet: if you miss, that gap is the most valuable lesson.',
+      media:'Medium bet: recall from memory before revealing.',
+      baja:'Low bet: perfect for discovering that you do know.'};
+    note.textContent=map[b.dataset.w]||'';
+  });
+});
+
+// === PRACTICE LAB (Phase 2) ===
+var practiceDataEl=document.getElementById('practice-data');
+var practiceData=practiceDataEl?JSON.parse(practiceDataEl.textContent):[];
+function setItemState(item,state,extra){
+  extra=extra||{};
+  var idx=item.dataset.practiceIndex;
+  practiceState[idx]=Object.assign(practiceState[idx]||{},{state:state},extra,{updated_at:new Date().toISOString()});
+  item.dataset.state=state;
+  var status=item.querySelector('.item-status');
+  var labels={answered:'Status: answered without looking',i_dont_know:'Status: I don\'t know',
+    quiz_passed:'Status: multiple choice correct',quiz_failed:'Status: multiple choice failed',
+    revealed:'Status: answer revealed'};
+  status.textContent=labels[state]||'Status: pending';
+  savePractice();
+  updateProductionGate();
+}
+function renderQuiz(item){
+  var idx=Number(item.dataset.practiceIndex);
+  var card=practiceData[idx]||{};
+  var quiz=card.quiz||{};
+  var panel=item.querySelector('.quiz-panel');
+  var options=Array.isArray(quiz.options)&&quiz.options.length?quiz.options:[card.back,'I don\'t know'];
+  var correct=Number.isInteger(quiz.correct_index)?quiz.correct_index:0;
+  panel.innerHTML='<p>Multiple choice: recognition, not full mastery.</p>'+
+    options.map(function(opt,i){return '<button data-option="'+i+'">'+opt+'</button>';}).join('');
+  panel.hidden=false;
+  panel.querySelectorAll('button').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      var selected=Number(btn.dataset.option);
+      var passed=selected===correct;
+      btn.classList.add(passed?'correct':'wrong');
+      setItemState(item,passed?'quiz_passed':'quiz_failed',{
+        quiz_score:passed?'1/2':'0/2',quiz_selected:selected,
+        answer:item.querySelector('.practice-answer').value.trim()
+      });
+    });
+  });
+}
+document.querySelectorAll('.save-answer').forEach(function(b){
+  b.addEventListener('click',function(){
+    var item=b.closest('.recall-item');
+    setItemState(item,'answered',{answer:item.querySelector('.practice-answer').value.trim()});
+  });
+});
+document.querySelectorAll('.unknown-answer').forEach(function(b){
+  b.addEventListener('click',function(){
+    var item=b.closest('.recall-item');
+    setItemState(item,'i_dont_know',{answer:item.querySelector('.practice-answer').value.trim()});
+  });
+});
+document.querySelectorAll('.quiz-mode').forEach(function(b){
+  b.addEventListener('click',function(){renderQuiz(b.closest('.recall-item'));});
+});
+document.querySelectorAll('.reveal-back').forEach(function(b){
+  b.addEventListener('click',function(){
+    var item=b.closest('.recall-item');
+    item.querySelector('.recall-back').classList.add('show');
+    setItemState(item,'revealed',{answer:item.querySelector('.practice-answer').value.trim(),revealed:true});
+  });
+});
+
+// Production gate
+function updateProductionGate(){
+  var total=practiceData.length;
+  var done=0;
+  for(var k in practiceState){if(practiceState[k]&&practiceState[k].state)done++;}
+  var doneEl=document.getElementById('prod-done');
+  var totalEl=document.getElementById('prod-total');
+  var tabScore=document.getElementById('tab-prod-score');
+  if(doneEl)doneEl.textContent=done;
+  if(totalEl)totalEl.textContent=total;
+  if(tabScore&&total)tabScore.textContent=done+'/'+total;
+  var btn=document.getElementById('unlock-transfer');
+  if(btn){
+    if(done>=total&&total>0){btn.disabled=false;btn.textContent='Unlock Transfer →';}
+    else{btn.disabled=true;btn.textContent='Complete all the exercises ('+done+'/'+total+')';}
+  }
+}
+document.getElementById('unlock-transfer')?.addEventListener('click',function(){
+  unlockPhase('produccion');
+  activatePhase('transferencia');
+  showPhase('transferencia');
+});
+
+// Restore practice
+(function restorePractice(){
+  document.querySelectorAll('.recall-item').forEach(function(item){
+    var idx=item.dataset.practiceIndex;
+    var state=practiceState[idx];
+    if(!state)return;
+    var ta=item.querySelector('.practice-answer');
+    if(ta)ta.value=state.answer||'';
+    if(state.revealed){var back=item.querySelector('.recall-back');if(back)back.classList.add('show');}
+    setItemState(item,state.state||'answered',state);
+  });
+  updateProductionGate();
+})();
+
+// === SCENARIOS (Phase 3) ===
+var scenarioDataEl=document.getElementById('scenario-data');
+var scenarioData=scenarioDataEl?JSON.parse(scenarioDataEl.textContent):[];
+document.querySelectorAll('.save-scenario').forEach(function(b){
+  b.addEventListener('click',function(){
+    var idx=b.dataset.scenario;
+    var card=b.closest('.scenario-card');
+    var answer=card.querySelector('.scenario-answer').value.trim();
+    if(!answer)return;
+    scenarioState[idx]={answer:answer,state:'answered',updated_at:new Date().toISOString()};
+    saveScenarios();
+    card.dataset.state='answered';
+    card.querySelector('.scenario-status').textContent='Status: answered';
+    updateTransferScore();
+  });
+});
+function updateTransferScore(){
+  var done=Object.keys(scenarioState).filter(function(k){return scenarioState[k]&&scenarioState[k].state;}).length;
+  var tabScore=document.getElementById('tab-trans-score');
+  if(tabScore&&scenarioData.length)tabScore.textContent=done+'/'+scenarioData.length;
+}
+(function restoreScenarios(){
+  document.querySelectorAll('.scenario-card').forEach(function(card){
+    var idx=card.dataset.scenario;
+    var state=scenarioState[idx];
+    if(!state)return;
+    var ta=card.querySelector('.scenario-answer');
+    if(ta)ta.value=state.answer||'';
+    if(state.state){card.dataset.state=state.state;card.querySelector('.scenario-status').textContent='Status: answered';}
+  });
+  updateTransferScore();
+})();
+
+// === EFFORT CHECK (illusion-of-learning diagnostic — Barcaui) ===
+// Self-reported effort per module and per scenario. Not scored as right/wrong —
+// course-evaluate crosses it with the real score to detect when something
+// "came easily" but the result says otherwise (fluency without mastery, the
+// same risk Barcaui documents with unrestricted AI use).
+var moduleEffort=JSON.parse(localStorage.getItem(practiceKey+':moduleEffort')||'{}');
+var scenarioEffort=JSON.parse(localStorage.getItem(practiceKey+':scenarioEffort')||'{}');
+document.querySelectorAll('.effort-opt[data-effort-module]').forEach(function(b){
+  var idx=b.dataset.effortModule;
+  if(moduleEffort[idx]===b.dataset.value)b.classList.add('sel');
+  b.addEventListener('click',function(){
+    b.parentElement.querySelectorAll('button').forEach(function(x){x.classList.remove('sel');});
+    b.classList.add('sel');
+    moduleEffort[idx]=b.dataset.value;
+    localStorage.setItem(practiceKey+':moduleEffort',JSON.stringify(moduleEffort));
+  });
+});
+document.querySelectorAll('.effort-opt[data-effort-scenario]').forEach(function(b){
+  var idx=b.dataset.effortScenario;
+  if(scenarioEffort[idx]===b.dataset.value)b.classList.add('sel');
+  b.addEventListener('click',function(){
+    b.parentElement.querySelectorAll('button').forEach(function(x){x.classList.remove('sel');});
+    b.classList.add('sel');
+    scenarioEffort[idx]=b.dataset.value;
+    localStorage.setItem(practiceKey+':scenarioEffort',JSON.stringify(scenarioEffort));
+  });
+});
+
+// === MODULE ANSWERS (comprehension + teaching) — persisted so they reach the export ===
+var moduleAnswerKey=practiceKey+':modules';
+var moduleAnswers=JSON.parse(localStorage.getItem(moduleAnswerKey)||'{}');
+function moduleAnswerId(ta){
+  var mod=ta.closest('.module');
+  var box=ta.closest('[data-verify-type]');
+  var m=mod&&mod.id?mod.id.replace('mod-',''):'?';
+  return m+':'+(box?box.dataset.verifyType:'answer');
+}
+document.querySelectorAll('.module-answer').forEach(function(ta){
+  var id=moduleAnswerId(ta);
+  if(moduleAnswers[id])ta.value=moduleAnswers[id];
+  ta.addEventListener('input',function(){
+    moduleAnswers[id]=ta.value;
+    localStorage.setItem(moduleAnswerKey,JSON.stringify(moduleAnswers));
+  });
+});
+
+// === PRACTICE EXPORT (practice-export.md) ===
+// Builds the Markdown file that open-brain-course-evaluate reads from
+// Skills/<Domain>/<Skill>/practice-export.md. Format: schema practice-export/1
+// (documented in the open-brain-course-evaluate skill). Answers are written as
+// blockquotes so any Markdown the learner typed cannot break the structure.
+var EXPORT_FILENAME='practice-export.md';
+function mdQuote(text){
+  var t=String(text||'').trim();
+  if(!t)return '> _(empty)_';
+  return t.split(/\r?\n/).map(function(l){return '> '+l;}).join('\n');
+}
+function mdInline(text){return String(text||'').replace(/\s*\r?\n\s*/g,' ').replace(/\|/g,'\\|').trim();}
+function yamlStr(text){return '"'+String(text||'').replace(/\\/g,'\\\\').replace(/"/g,'\\"')+'"';}
+function primerData(){
+  var el=document.getElementById('primer-data');
+  try{return el?JSON.parse(el.textContent):[];}catch(e){return [];}
+}
+function currentConfidence(){
+  var sel=document.querySelector('.wager-btns button.sel');
+  return sel?sel.dataset.w:'not recorded';
+}
+function collectPracticeItems(){
+  return practiceData.map(function(card,idx){
+    var ps=practiceState[idx]||{};
+    var ta=document.querySelector('.recall-item[data-practice-index="'+idx+'"] .practice-answer');
+    return {index:idx,module:card.module||'',concept:card.concept||card.front||'',
+      front:card.front||'',answer:ta?ta.value.trim():(ps.answer||''),
+      state:ps.state||'pending',quiz_score:ps.quiz_score||null,revealed:!!ps.revealed};
+  });
+}
+function collectScenarios(){
+  return scenarioData.map(function(s,idx){
+    var ss=scenarioState[idx]||{};
+    var ta=document.getElementById('scenario-'+idx);
+    var answer=ta?ta.value.trim():(ss.answer||'');
+    return {index:idx,title:s.title||'',deliverable:s.deliverable||'',
+      evaluation_criteria:s.evaluation_criteria||[],answer:answer,
+      state:ss.state||(answer?'draft':'pending'),effort:scenarioEffort[idx]||null};
+  });
+}
+function collectModules(){
+  return Array.prototype.map.call(document.querySelectorAll('.module'),function(mod){
+    var idx=(mod.id||'').replace('mod-','');
+    var title=(mod.querySelector('.module-header h2')||{}).textContent||('Module '+idx);
+    var num=(mod.querySelector('.module-header .numeral')||{}).textContent||'';
+    var parts={};
+    mod.querySelectorAll('[data-verify-type]').forEach(function(box){
+      var ta=box.querySelector('.module-answer');
+      parts[box.dataset.verifyType]={question:box.dataset.question||'',answer:ta?ta.value.trim():''};
+    });
+    return {index:idx,n:num,title:title.trim(),effort:moduleEffort[idx]||null,
+      comprehension:parts.comprehension||{question:'',answer:''},
+      teaching:parts.teaching||{question:'',answer:''}};
+  });
+}
+function buildPracticeExport(){
+  var primer=primerData();
+  var items=collectPracticeItems();
+  var scen=collectScenarios();
+  var mods=collectModules();
+  var vocabPct=vocabTotal?Math.round(vocabCorrect/vocabTotal*100):0;
+  var practiceDone=items.filter(function(i){return i.state!=='pending';}).length;
+  var scenDone=scen.filter(function(s){return s.answer;}).length;
+  var L=[];
+  L.push('---');
+  L.push('type: practice-export');
+  L.push('schema: practice-export/1');
+  L.push('domain: '+yamlStr(COURSE_DOMAIN));
+  L.push('skill: '+yamlStr(COURSE_SKILL));
+  L.push('exported_at: '+new Date().toISOString());
+  L.push('confidence_wager: '+currentConfidence());
+  L.push('vocab_score: "'+vocabCorrect+'/'+vocabTotal+'"');
+  L.push('practice_done: "'+practiceDone+'/'+items.length+'"');
+  L.push('scenarios_done: "'+scenDone+'/'+scen.length+'"');
+  L.push('---','');
+  L.push('# Practice export — '+COURSE_SKILL,'');
+  L.push('## Vocabulary','');
+  L.push('Score: '+vocabCorrect+'/'+vocabTotal+' ('+vocabPct+'%)','');
+  if(primer.length){
+    L.push('| # | term | selected | correct |','|---|---|---|---|');
+    primer.forEach(function(c,i){
+      var v=vocabState[i];
+      var opts=(c.quiz&&c.quiz.options)||[];
+      var sel=v?mdInline(opts[v.selected]!==undefined?opts[v.selected]:v.selected):'_(not answered)_';
+      L.push('| '+(i+1)+' | '+mdInline(c.term)+' | '+sel+' | '+(v?(v.correct?'yes':'no'):'—')+' |');
+    });
+    L.push('');
+  }
+  L.push('## Modules','');
+  mods.forEach(function(m){
+    L.push('### M'+(Number(m.index)+1)+' — '+mdInline(m.title));
+    L.push('- effort_check: '+(m.effort||'not recorded'),'');
+    L.push('**Comprehension:** '+mdInline(m.comprehension.question),'');
+    L.push(mdQuote(m.comprehension.answer),'');
+    L.push('**Teaching:** '+mdInline(m.teaching.question),'');
+    L.push(mdQuote(m.teaching.answer),'');
+  });
+  L.push('## Exercises','');
+  items.forEach(function(it){
+    L.push('### E'+(it.index+1)+' — '+mdInline(it.module)+' · '+mdInline(it.concept));
+    L.push('- state: '+it.state);
+    L.push('- revealed: '+(it.revealed?'yes':'no'));
+    L.push('- quiz_score: '+(it.quiz_score||'none'),'');
+    L.push('**Prompt:** '+mdInline(it.front),'');
+    L.push(mdQuote(it.answer),'');
+  });
+  L.push('## Scenarios','');
+  scen.forEach(function(s){
+    L.push('### S'+(s.index+1)+' — '+mdInline(s.title));
+    L.push('- state: '+s.state);
+    L.push('- effort_check: '+(s.effort||'not recorded'),'');
+    L.push('**Deliverable:** '+mdInline(s.deliverable),'');
+    L.push(mdQuote(s.answer),'');
+  });
+  return L.join('\n');
+}
+function buildEvaluationPrompt(){
+  var crit=collectScenarios().map(function(s){
+    return 'S'+(s.index+1)+' — '+s.title+':\n'+(s.evaluation_criteria||[]).map(function(c){
+      return '  - '+(c.name||c)+': '+(c.description||'');
+    }).join('\n');
+  }).join('\n');
+  return [
+    'You are evaluating a learner\'s answers to the course "'+COURSE_SKILL+'" ('+COURSE_DOMAIN+').',
+    'The answers follow below in practice-export.md format (schema practice-export/1).',
+    '',
+    'Rules:',
+    '1. Free-text answers weigh more than quiz results.',
+    '2. An exercise in state "revealed" is not mastery.',
+    '3. "i_dont_know" is a useful gap signal for the next course, not a failure to punish.',
+    '4. Mastery = explains it in their own words AND applies it to an example.',
+    '5. Scenarios are the strongest transfer signal: vocabulary + production without transfer = recognition, not mastery.',
+    '6. Cross each effort_check with the real score: "it came easily" + a low score is a false positive (illusion of learning). Never score from effort_check alone.',
+    '',
+    'Scenario evaluation criteria:',
+    crit||'(no scenarios)',
+    '',
+    'Answer with these sections: ## Vocabulary Score · ## Result per exercise (table: exercise | state | verdict | score 0-2 | what\'s missing | micro-action) · ## Result per scenario (table: scenario | criteria met | score 0-3 | what it shows | what\'s missing) · ## Overall diagnosis (level: insufficient/basic/functional/solid; transfer: yes/no) · ## Mastered concepts · ## Gaps to repair · ## False positives · ## Next Move (repair_vocabulary | practice_real_cases | repair_course | advanced_course).',
+    '',
+    '---',
+    ''
+  ].join('\n')+buildPracticeExport();
+}
+function downloadText(filename,text){
+  var blob=new Blob([text],{type:'text/markdown;charset=utf-8'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');
+  a.href=url;a.download=filename;a.style.display='none';
+  document.body.appendChild(a);a.click();
+  setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(url);},0);
+}
+function copyText(text){
+  if(navigator.clipboard&&window.isSecureContext){
+    return navigator.clipboard.writeText(text).catch(function(){return legacyCopy(text);});
+  }
+  return legacyCopy(text);
+}
+function legacyCopy(text){
+  return new Promise(function(resolve,reject){
+    var ta=document.createElement('textarea');
+    ta.value=text;ta.setAttribute('readonly','');
+    ta.style.position='fixed';ta.style.top='-1000px';
+    document.body.appendChild(ta);ta.select();
+    var ok=false;try{ok=document.execCommand('copy');}catch(e){}
+    document.body.removeChild(ta);
+    ok?resolve():reject(new Error('copy blocked by the browser'));
+  });
+}
+function flashButton(btn,msg){
+  if(!btn)return;
+  var orig=btn.dataset.label||btn.textContent;
+  btn.dataset.label=orig;btn.textContent=msg;
+  setTimeout(function(){btn.textContent=orig;},2200);
+}
+var EXPORT_HINT='Saved as '+EXPORT_FILENAME+'. Move it to Skills/'+COURSE_DOMAIN+'/'+COURSE_SKILL+'/ in your vault, then say "course-evaluate" in your Claude session.';
+function onDownloadExport(){
+  downloadText(EXPORT_FILENAME,buildPracticeExport());
+  flashButton(this,'Downloaded ✓');
+  var st=document.getElementById('sync-status');if(st&&this.id==='download-export-final'){st.textContent=EXPORT_HINT;st.className='sync-success';}
+}
+function onCopyExport(){
+  var btn=this;
+  copyText(buildPracticeExport()).then(function(){flashButton(btn,'Copied ✓');},
+    function(e){flashButton(btn,'Copy failed — use Download');});
+}
+['download-practice-md','download-export-final'].forEach(function(id){
+  var b=document.getElementById(id);if(b)b.addEventListener('click',onDownloadExport);
+});
+['copy-practice-md','copy-export-final'].forEach(function(id){
+  var b=document.getElementById(id);if(b)b.addEventListener('click',onCopyExport);
+});
+document.getElementById('copy-evaluation-bundle')?.addEventListener('click',function(){
+  var btn=this;
+  copyText(buildEvaluationPrompt()).then(function(){flashButton(btn,'Prompt + answers copied ✓');},
+    function(){flashButton(btn,'Copy failed');});
+});
+
+// Pasted evaluation (from an external Claude chat): kept in this browser and
+// downloaded as course-evaluation.md so it can be stored next to the course.
+var evalKey=practiceKey+':evaluation';
+(function initEvaluationImport(){
+  var ta=document.getElementById('claude-eval');
+  if(ta&&!ta.value)ta.value=localStorage.getItem(evalKey)||'';
+})();
+document.getElementById('save-claude-eval')?.addEventListener('click',function(){
+  var ta=document.getElementById('claude-eval');
+  var out=document.getElementById('claude-eval-output');
+  var text=ta?ta.value.trim():'';
+  if(!text){if(out)out.textContent='Paste the evaluation first.';return;}
+  localStorage.setItem(evalKey,text);
+  var header='# Course evaluation — '+COURSE_SKILL+'\n\n_Pasted from an external evaluation on '+new Date().toISOString()+'._\n\n';
+  downloadText('course-evaluation.md',header+text+'\n');
+  if(out)out.textContent='Saved in this browser and downloaded as course-evaluation.md. Move it to Skills/'+COURSE_DOMAIN+'/'+COURSE_SKILL+'/ in your vault.';
+});
+
+// === OPTIONAL SYNC (only if you run your own sync endpoint) ===
+// POSTs {domain, skill, filename, markdown, ...structured fields} to
+// COURSE_SERVER + '/api/practice-sync'. No server ships with Open Brain; if
+// nothing answers, the learner is told to use Download instead.
+document.getElementById('sync-to-vault')?.addEventListener('click',function(){
+  var btn=this;
+  var status=document.getElementById('sync-status');
+  btn.disabled=true;
+  status.textContent='Trying the sync endpoint at '+COURSE_SERVER+'…';status.className='';
+  fetch(COURSE_SERVER+'/api/practice-sync',{method:'POST',headers:{'content-type':'application/json'},
+    body:JSON.stringify({domain:COURSE_DOMAIN,skill:COURSE_SKILL,filename:EXPORT_FILENAME,
+      markdown:buildPracticeExport(),confidence_wager:currentConfidence(),
+      practice_items:collectPracticeItems(),modules:collectModules(),scenarios:collectScenarios(),
+      vocab_score:{correct:vocabCorrect,total:vocabTotal}})
+  }).then(function(r){return r.json();}).then(function(data){
+    if(data&&data.ok){
+      status.textContent='Synced. Now say in your Claude session: course-evaluate';
+      status.className='sync-success';
+    }else{
+      status.textContent='The sync endpoint answered with an error ('+((data&&data.error)||'unknown')+'). Use "Download practice-export.md" instead.';
+      status.className='sync-error';
+    }
+    btn.disabled=false;
+  }).catch(function(){
+    status.textContent='No sync server is running at '+COURSE_SERVER+' (it is optional and not included). Use "Download practice-export.md" instead and save the file in Skills/'+COURSE_DOMAIN+'/'+COURSE_SKILL+'/.';
+    status.className='sync-error';btn.disabled=false;
+  });
+});
+
+// === OPTIONAL AI CHECK (GitHub Models) ===
+// Off until the learner pastes a token in the sidebar. The token stays in this
+// browser's localStorage and is sent only to AI_CHECK_ENDPOINT. No repository,
+// owner or account is involved; change the endpoint/model here if needed.
+var AI_CHECK_ENDPOINT='https://models.inference.ai.azure.com/chat/completions';
+var GH_TOKEN_KEY='gh_models_token';
+var GH_MODEL='gpt-4o-mini';
+
+function escHtml(s){
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+(function initGhToken(){
+  var inp=document.getElementById('gh-token-input');
+  var sta=document.getElementById('gh-token-status');
+  if(!inp)return;
+  var saved=localStorage.getItem(GH_TOKEN_KEY)||'';
+  inp.value=saved;
+  if(saved)sta.textContent='✓ Token active';
+  inp.addEventListener('change',function(){
+    var v=this.value.trim();
+    localStorage.setItem(GH_TOKEN_KEY,v);
+    sta.textContent=v?'✓ Token saved':'';
+  });
+})();
+
+async function verifyWithGH(prompt,feedbackEl){
+  var token=localStorage.getItem(GH_TOKEN_KEY)||'';
+  if(!token){
+    feedbackEl.innerHTML='<div class="gh-feedback-error">Add a GitHub token in the sidebar to turn on the instant AI check.</div>';
+    feedbackEl.style.display='block';
+    return;
+  }
+  feedbackEl.innerHTML='<div class="gh-feedback-loading">Checking with GitHub Models…</div>';
+  feedbackEl.style.display='block';
+  try{
+    var r=await fetch(AI_CHECK_ENDPOINT,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+      body:JSON.stringify({model:GH_MODEL,messages:[{role:'user',content:prompt}],max_tokens:220,temperature:0.3})
+    });
+    if(!r.ok){var et=await r.text();throw new Error('HTTP '+r.status+' — '+et.substring(0,120));}
+    var d=await r.json();
+    var text=(d.choices&&d.choices[0]&&d.choices[0].message&&d.choices[0].message.content)||'No response';
+    feedbackEl.innerHTML='<div class="gh-feedback-panel"><span class="gh-feedback-label">AI ↗ GitHub Models</span><p>'+escHtml(text)+'</p></div>';
+  }catch(err){
+    feedbackEl.innerHTML='<div class="gh-feedback-error">Error: '+escHtml(err.message)+'</div>';
+  }
+}
+
+// Verify buttons — module comprehension & teaching
+document.querySelectorAll('.verify-btn').forEach(function(btn){
+  btn.addEventListener('click',function(){
+    var container=btn.closest('.comprehension,.self-explain,.teaching');
+    if(!container)return;
+    var ta=container.querySelector('.module-answer');
+    var feedbackEl=container.querySelector('.gh-feedback-output');
+    var answer=ta?ta.value.trim():'';
+    if(!answer){
+      feedbackEl.innerHTML='<div class="gh-feedback-error">Write something first.</div>';
+      feedbackEl.style.display='block';
+      return;
+    }
+    var type=btn.dataset.type;
+    var context=container.dataset.context||COURSE_SKILL;
+    var question=container.dataset.question||'';
+    var prompt;
+    if(type==='comprehension'){
+      prompt='You are a learning tutor. The learner is studying "'+context+'".\n\nComprehension question: '+question+'\n\nLearner\'s answer: '+answer+'\n\nAssess it in 2-3 direct sentences: what they got right and what they can improve. Don\'t repeat the question. Be specific.';
+    }else{
+      prompt='You are a learning tutor. The learner is studying "'+context+'".\n\nThey must explain the concept to a non-technical stakeholder. Their explanation: '+answer+'\n\nAssess it in 2-3 sentences: is it clear? Does it use unexplained jargon? What is missing for a non-expert to understand it?';
+    }
+    btn.disabled=true;
+    verifyWithGH(prompt,feedbackEl).finally(function(){btn.disabled=false;});
+  });
+});
+
+// Verify buttons — scenarios
+document.querySelectorAll('.verify-scenario-btn').forEach(function(btn){
+  btn.addEventListener('click',function(){
+    var idx=btn.dataset.scenario;
+    var card=btn.closest('.scenario-card');
+    var ta=card?card.querySelector('.scenario-answer'):null;
+    var answer=ta?ta.value.trim():'';
+    var feedbackEl=document.getElementById('gh-feedback-scenario-'+idx);
+    if(!feedbackEl)return;
+    if(!answer){
+      feedbackEl.innerHTML='<div class="gh-feedback-error">Write your answer first.</div>';
+      feedbackEl.style.display='block';
+      return;
+    }
+    var sData=scenarioData[parseInt(idx)]||{};
+    var criteria=(sData.evaluation_criteria||[]).map(function(c){
+      return '- '+(c.name||c)+': '+(c.description||'');
+    }).join('\n');
+    var prompt='You are a tutor assessing a transfer scenario for the skill "'+COURSE_SKILL+'".\n\n'+
+      'Situation: '+(sData.context||'')+'\n'+
+      'Constraint: '+(sData.constraint||'')+'\n'+
+      'Requested deliverable: '+(sData.deliverable||'')+'\n'+
+      'Learner\'s answer: '+answer+'\n'+
+      'Criteria:\n'+criteria+'\n\n'+
+      'Assess it in 3-4 sentences: which criteria it meets, what is missing, and ONE concrete piece of advice. Be direct.';
+    btn.disabled=true;
+    verifyWithGH(prompt,feedbackEl).finally(function(){btn.disabled=false;});
+  });
+});
+
+// === INIT: show Phase 1, lock others ===
+showPhase('vocabulario');
+</script>
+</body>
+</html>
