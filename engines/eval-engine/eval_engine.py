@@ -99,7 +99,10 @@ def to_int(v, default=0) -> int:
 def dim_integrity() -> dict:
     """Frontmatter compliance, broken links, orphan PNs."""
     total, compliant, missing_type, missing_layer = 0, 0, 0, 0
-    for folder, need_layer in [("Permanent Notes", True), ("Literature Notes", True),
+    # `layer` is required only on Permanent Notes. Literature Notes carry
+    # multi-label `features` instead (LN template, health check 7); requiring
+    # `layer` there marked every spec-conforming LN as non-compliant.
+    for folder, need_layer in [("Permanent Notes", True), ("Literature Notes", False),
                                 ("Inbox", False), ("Cases", False)]:
         for p, text in notes(folder):
             total += 1
@@ -185,9 +188,15 @@ def dim_graph() -> dict:
                 continue
 
     total_edges = len(edges)
+    # Signal/noise is measured over CLAIM edges only, as autolink.py reports it.
+    # Index edges (search_terms -> indexa_por, domains -> pertenece_a) come from
+    # frontmatter, not from a connector verb; counting them as signal pushed the
+    # ratio close to 100% on any indexed vault and the red band could never fire.
+    index_types = {"indexa_por", "pertenece_a"}
+    claim_edges = total_edges - sum(type_counts.get(t, 0) for t in index_types)
     noise_count = sum(type_counts.get(t, 0) for t in noise_types)
-    signal_count = total_edges - noise_count
-    signal_ratio = round(signal_count / total_edges * 100, 1) if total_edges else 0
+    signal_count = claim_edges - noise_count
+    signal_ratio = round(signal_count / claim_edges * 100, 1) if claim_edges else 0
 
     # Generative types (the valuable ones)
     generative_types = {"contradice", "refuta", "refina", "extiende", "cross_domain",
@@ -200,7 +209,14 @@ def dim_graph() -> dict:
     if entities_path.exists():
         try:
             data = json.loads(entities_path.read_text(encoding="utf-8", errors="ignore"))
-            entity_count = len(data) if isinstance(data, list) else len(data)
+            # indexer.py keys every note twice (by slug and by title), so count
+            # distinct notes, not dict keys: len(data) doubled the entity count
+            # and halved edges_per_entity.
+            if isinstance(data, dict):
+                entity_count = len({v.get("path", k) if isinstance(v, dict) else k
+                                    for k, v in data.items()})
+            else:
+                entity_count = len(data)
         except (json.JSONDecodeError, OSError):
             pass
 
@@ -251,7 +267,10 @@ def dim_pipeline() -> dict:
         d = days_since(fm.get("created"))
         if d is not None:
             inbox_ages.append(d)
-            if d > 30:
+            # Stale = still unprocessed after 30 days (same rule as health check 5).
+            # Extracted notes stay in Inbox/ with `processed: true`; counting them
+            # made the stale rate grow with every source you finished.
+            if d > 30 and str(fm.get("processed", "")).strip().lower() != "true":
                 inbox_stale += 1
 
     # Source coverage from Dossiers

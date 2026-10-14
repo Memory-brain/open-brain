@@ -43,6 +43,14 @@ from datetime import datetime, timezone, date, timedelta
 from pathlib import Path
 
 
+# `self-test` builds its own fixture vaults and never reads yours, but importing
+# vault-scan exits when no vault can be found. Point it at the temp dir so the
+# self-test runs from a plain checkout with no vault configured.
+if sys.argv[1:2] == ["self-test"] and not (os.environ.get("OPEN_BRAIN_VAULT")
+                                           or os.environ.get("VAULT_ROOT")):
+    import tempfile
+    os.environ["OPEN_BRAIN_VAULT"] = tempfile.gettempdir()
+
 # OPEN_BRAIN_VAULT overrides everything. vault-scan reads VAULT_ROOT, so mirror it
 # there BEFORE importing it: both modules must agree on the same vault.
 if os.environ.get("OPEN_BRAIN_VAULT"):
@@ -1379,7 +1387,9 @@ def check_34_pipeline_compression():
         _sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "engine"))
         import compression_benchmark
         data = compression_benchmark.analyze(root=VAULT, min_ln_count=1)
-    except Exception as e:
+    # SystemExit too: these modules exit at import when PyYAML is missing, and
+    # `except Exception` let that kill the whole health run instead of this check.
+    except (Exception, SystemExit) as e:
         return {"id": 34, "name": "Pipeline Compression Benchmark",
                 "severity": "info", "count": 0,
                 "detail": f"compression_benchmark.py unavailable or failed: {e}"}
@@ -1409,7 +1419,9 @@ def check_35_skill_sequence_signal():
         _sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "engine"))
         import skill_sequence_report
         data = skill_sequence_report.analyze(root=VAULT)
-    except Exception as e:
+    # SystemExit too: these modules exit at import when PyYAML is missing, and
+    # `except Exception` let that kill the whole health run instead of this check.
+    except (Exception, SystemExit) as e:
         return {"id": 35, "name": "skill_sequence Adoption & Signal",
                 "severity": "info", "count": 0,
                 "detail": f"skill_sequence_report.py unavailable or failed: {e}"}

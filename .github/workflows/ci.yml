@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  engines:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install PyYAML
+        run: python -m pip install pyyaml
+
+      - name: Health-check self-test
+        run: python3 engines/health-engine/health_check.py self-test
+
+      - name: Example-vault demo
+        run: bash example-vault/run-demo.sh | tee demo-output.txt
+
+      - name: Demo still catches the seeded defects
+        run: |
+          set -e
+          check() { grep -qF -- "$1" demo-output.txt || { echo "missing in demo output: $1"; exit 1; }; }
+          check '[1] Orphan Notes: count=1'
+          check '"note": "The Quiet Standup"'
+          check '"term": "Habit Formation"'
+          check '"note": "SL - A broken streak predicts dropout more than a missed day"'
+          check 'Literature Notes/TF - A fixed weekly rhythm makes a small team pred'
+          echo "All seeded defects caught as documented in example-vault/README.md"
+
+      - name: Demo left no files in the repo
+        run: |
+          rm -f demo-output.txt
+          test -z "$(git status --porcelain)" || { git status --porcelain; exit 1; }

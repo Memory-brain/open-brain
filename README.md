@@ -14,6 +14,91 @@ Some parts of the framework are practices you run by hand rather than features a
 
 ---
 
+## Try it in two minutes
+
+[`example-vault/`](example-vault/) is a small vault: 33 notes built from two invented books. Everything in it is fictional. It contains six deliberately seeded defects, so you can see what the engines catch and what they miss. You don't need a vault of your own or Claude Code: only Python 3.9+.
+
+```bash
+git clone https://github.com/csmoya/Open-brain-framework.git
+cd Open-brain-framework
+pip install pyyaml          # optional; without it one informational check reports 0
+python3 engines/health-engine/health_check.py self-test
+bash example-vault/run-demo.sh
+```
+
+`run-demo.sh` copies the vault to a temporary directory, runs five engines there and deletes the copy afterwards, so nothing is written into the repo. The five engines are autolink (typed graph), the health check, the enrich scan, a one-hop graph retrieval and the eval. The excerpt below is real output from 2026-10-14, trimmed: `…` marks a cut, and checks that reported 0 are left out of the summary.
+
+```text
+== 1. Autolink: index the vault and build the typed graph ==
+✅ Indexed 33 notes → entities.json
+✅ Wrote 130 edges → graph.jsonl
+…
+🔖 Index edges (frontmatter): 97
+🎯 Signal/noise ratio: 54.5% (18/33 non-trivial claim edges)
+
+== 2. Health check (deterministic checks) ==
+  "summary": {
+    "Orphan Notes": 1,
+    "Unprocessed Inbox (>30d)": 1,
+    "Contradiction Scan": 1,
+    "skill_sequence Adoption & Signal": 3,
+    "PN Provenance (resolved sources:)": 1,
+    "Description as Claim, Not Label": 2,
+    …
+-- details of the checks that fired --
+[1] Orphan Notes: count=1
+     items: ["Small teams beat large teams on ambiguous work"]
+[5] Unprocessed Inbox (>30d): count=1
+     items: [{"note": "The Quiet Standup", "days": 63, "rating": 3}]
+[12] Contradiction Scan: count=1
+     items: [{"a": "A new routine sticks when it is small enough to run on a bad day", "b": "Judge a practice by its weekly review, not by its daily streak", "type": "contradice", …}]
+[16] Search Term Crowding: count=0
+     yellow_top: [{"term": "Habit Formation", "tag_count": 12, "tier": "flat", "threshold": 20, …}]
+[36] PN Provenance (resolved sources:): count=1
+     single_author_items: [{"pn": "Small teams beat large teams on ambiguous work", "author": "dov hartigan", "sources": 2}]
+[46] Description as Claim, Not Label: count=2
+     topic_not_claim: {"total": 1, "sample": ["Literature Notes/TF - A fixed weekly rhythm makes a small team pred"]}
+
+== 3. Enrich scan (notes under 3 specific, resolvable search terms) ==
+  "under_threshold": [
+    {
+      "note": "SL - A broken streak predicts dropout more than a missed day",
+      "specific_resolvable": 2,
+…
+== 4. Retrieval: one-hop graph expansion from a seed note ==
+ Score  Edge Type         Dir  Seed                                      Neighbor
+   5.0  contradice          →  Judge a practice by its weekly review, n  A new routine sticks when it is small enough to ru
+   1.0  refuerza            →  Judge a practice by its weekly review, n  Team rituals need an owner and a cue, not just a c
+   1.0  refuerza            ←  Judge a practice by its weekly review, n  Restarting an evening reading habit after a broken
+
+== 5. Eval (L1 metrics across six dimensions) ==
+    "integrity": {
+      "frontmatter_compliance_pct": 100.0,
+      …
+      "broken_links": 0,
+      "orphan_pns": 1,
+    …
+    "graph": {
+      "total_edges": 130,
+      "total_entities": 33,
+      "edges_per_entity": 3.94,
+      "signal_noise_ratio_pct": 54.5,
+    …
+    "pipeline": {
+      "inbox_total": 3,
+      "inbox_stale_30d": 1,
+```
+
+Of the six seeded defects, four are caught and one is caught only in part:
+
+- **Caught:** the stale Inbox item, the orphan Permanent Note, the topic-style description and the Literature Note with only two search terms.
+- **Caught in part:** the crowded term `Habit Formation`. It shows up in the yellow band (12 notes), but the check's count stays 0 because a flat term only counts as red above 20 notes.
+- **Missed:** a broken wikilink inside a Literature Note. Broken-link checks only scan Permanent Notes.
+
+[`example-vault/README.md`](example-vault/README.md) lists each defect, where it is and which check is expected to catch it. Edge types in the graph keep their original Spanish identifiers: `contradice` = contradicts, `refuerza` = reinforces, `extiende` = extends.
+
+---
+
 ## The Eight Modules
 
 ### Module 1: Knowledge Enrichment
@@ -286,6 +371,8 @@ skills/
 └── open-brain-*/                       # 22 skills (see Skills above)
 
 engines/                                # Python engines the skills call (copy into your vault root)
+
+example-vault/                          # Fictional 33-note vault + run-demo.sh (see "Try it in two minutes")
 ```
 
 ---
