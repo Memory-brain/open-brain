@@ -2,6 +2,8 @@
 
 **Open Brain** is an opinionated framework for building and maintaining personal knowledge vaults that stay useful as they scale. It addresses the core problem most PKM systems ignore: **notes don't just need to be captured — they need to be found, connected, kept alive, tested, and turned into output.**
 
+**[MemoryBrain](https://memorybrain.ai) is built on Open Brain.** Open Brain defines how a brain is built; MemoryBrain is where it lives inside your AIs (ChatGPT and Claude, through a remote MCP connector). The skills are listed at [memorybrain.ai/openbrain/skills](https://memorybrain.ai/openbrain/skills/).
+
 Most knowledge management systems work well at 50 notes. At 500, search gets noisy. At 2,000+, the vault becomes a graveyard of ideas you know you wrote down but can't surface when you need them. And at every scale, without active recall and deliberate output, the knowledge never becomes skill.
 
 Open Brain addresses this with a structured approach across eight modules — from first capture through to written thinking and system automation. The repo has two parts:
@@ -19,8 +21,8 @@ Some parts of the framework are practices you run by hand rather than features a
 [`example-vault/`](example-vault/) is a small vault: 33 notes built from two invented books. Everything in it is fictional. It contains six deliberately seeded defects, so you can see what the engines catch and what they miss. You don't need a vault of your own or Claude Code: only Python 3.9+.
 
 ```bash
-git clone https://github.com/csmoya/Open-brain-framework.git
-cd Open-brain-framework
+git clone https://github.com/Memory-brain/open-brain.git
+cd open-brain
 pip install pyyaml          # optional; without it one informational check reports 0
 python3 engines/health-engine/health_check.py self-test
 bash example-vault/run-demo.sh
