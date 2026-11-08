@@ -2,11 +2,11 @@
 
 **Open Brain** is an opinionated framework for building and maintaining personal knowledge vaults that stay useful as they scale. It addresses the core problem most PKM systems ignore: **notes don't just need to be captured — they need to be found, connected, kept alive, tested, and turned into output.**
 
-**[MemoryBrain](https://memorybrain.ai) is built on Open Brain.** Open Brain defines how a brain is built; MemoryBrain is where it lives inside your AIs (ChatGPT and Claude, through a remote MCP connector). The skills are listed at [memorybrain.ai/openbrain/skills](https://memorybrain.ai/openbrain/skills/).
+**[MemoryBrain](https://memorybrain.ai) is built on Open Brain.** Open Brain defines how a brain is built; MemoryBrain is where it lives inside your AIs (ChatGPT and Claude, through a remote MCP connector). The skills are listed at [memorybrain.ai/openbrain/skills](https://memorybrain.ai/openbrain/skills/). A part-by-part overview of the method is at [memorybrain.ai/openbrain/how-it-works](https://memorybrain.ai/openbrain/how-it-works/) (also [in Spanish](https://memorybrain.ai/openbrain/como-funciona/)).
 
 Most knowledge management systems work well at 50 notes. At 500, search gets noisy. At 2,000+, the vault becomes a graveyard of ideas you know you wrote down but can't surface when you need them. And at every scale, without active recall and deliberate output, the knowledge never becomes skill.
 
-Open Brain addresses this with a structured approach across eight modules — from first capture through to written thinking and system automation. The repo has two parts:
+Open Brain addresses this with a structured approach across eight modules — from first capture through to written thinking and system automation. The repo has three parts:
 
 - **`docs/`** — 46 problem/solution docs that explain the framework. They are tool-agnostic.
 - **`skills/`** — 23 [Claude Code](https://claude.com/claude-code) skills that implement it on a Markdown vault (see [Skills](#skills)).
